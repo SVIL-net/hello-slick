@@ -11,7 +11,7 @@ class TablesSuite extends funsuite.AnyFunSuite with BeforeAndAfter with ScalaFut
   val suppliers = TableQuery[Suppliers]
   val coffees = TableQuery[Coffees]
   
-  var db: Database = _
+  implicit var db: Database = _
 
   def createSchema() =
     db.run((suppliers.schema ++ coffees.schema).create).futureValue
@@ -37,59 +37,29 @@ class TablesSuite extends funsuite.AnyFunSuite with BeforeAndAfter with ScalaFut
   }
 
   before { db = Database.forConfig("h2mem1") }
-  
-  //更新情報入力
-  val updateCoffeeName = "Colombian"
-  val updateCoffeeSales = 10
-  
-  //Coffeesテーブル更新関数
-  def UpdateCoffeeTable() = {
-    db.run(coffees.filter(_.name === updateCoffeeName).map(_.sales).update(updateCoffeeSales)).futureValue
-  }
-
-  //補充対象仕入先・コーヒー名・個数表示関数
-  def Replenishment() = {
-
-    val Organize = for {
-      c <- coffees if c.sales > 0
-      s <- suppliers if c.supID === s.id 
-    }yield (s.name, c.name, c.sales)
-    
-    val OrganizeResult = db.run(Organize.result).futureValue
-
-    println("\n---------------Replenishment list---------------------")                         //表示
-    for(t <- OrganizeResult) println(" Supplier Name: " +t._1+ ", Coffee Name: " +t._2+ ", Quantity: "+ t._3)
-    
-    println("------------------------------------------------------\n")
-  }
-    
+ 
  //Coffeesテーブル更新関数テスト
  test("Coffees table update works") {
     createSchema()
     insertSupplier()
     insertCoffees()
-    UpdateCoffeeTable()
-    val Result = db.run(coffees.filter(_.name === updateCoffeeName).map(_.sales).result).futureValue
-    assert(Result.head == updateCoffeeSales)    //更新したいコーヒー名のsalesに更新したい数値が入っていることを確認
+    Exercise.updateCoffeeTable("Colombian",20)
+    val r1 = db.run(coffees.filter(_.name === "Colombian").map(_.sales).result).futureValue
+    assert(r1.head == 20) 
+    Exercise.updateCoffeeTable("Colombian",30)
+    val r2 = db.run(coffees.filter(_.name === "Colombian").map(_.sales).result).futureValue
+    assert(r2.head == 50)  
   }
   
-  //補充対象仕入先・コーヒー名・個数表示関数
+  //補充対象仕入先・コーヒー名・個数表示関数テスト
   test("Replenishment works") {
     createSchema()
     insertSupplier()
     insertCoffees()
-    val t = Replenishment()
-
-    val OrganizeTest = for {
-      c <- coffees if c.sales > 0
-      s <- suppliers if c.supID === s.id 
-    }yield (s.name, c.name, c.sales)
-    
-    val OrganizeTestResult = db.run(OrganizeTest.result).futureValue
-    
-    // 売上のあったコーヒー名とその仕入先と個数が正しく入っているか
-    assert(OrganizeTestResult(0) == ("The High Ground", "Espresso", 10))
-    assert(OrganizeTestResult(1) == ("Superior Coffee", "French_Roast_Decaf", 10))
+    val r = Exercise.replenishment()
+    Exercise.printList()
+    assert(r(0) == ("The High Ground", "Espresso", 10))
+    assert(r(1) == ("Superior Coffee", "French_Roast_Decaf", 10))    
   }
 
   test("Creating the Schema works") {
