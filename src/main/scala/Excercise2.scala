@@ -8,7 +8,7 @@ import slick.jdbc.H2Profile.api._
 object Excercise2  {
 
   val db = Database.forConfig("h2mem1")
-  //try {
+//try {
 
     // The query interface for the Suppliers table
     val suppliers: TableQuery[Suppliers] = TableQuery[Suppliers]
@@ -16,10 +16,13 @@ object Excercise2  {
     // the query interface for the Coffees table
     val coffees: TableQuery[Coffees] = TableQuery[Coffees]
 
-   def updateCoffeeTable(updateCoffeeName:String, updateCoffeeSales:Int) ={
-    Await.result(db.run(coffees.filter(_.name === updateCoffeeName).map(_.sales).update(updateCoffeeSales)),Duration.Inf)
-    }
-//  } finally db.close
+  def updateCoffeeTable(updateCoffeeName:String, updateCoffeeSales:Int) ={
+  //  Await.result(db.run(coffees.filter(_.name === updateCoffeeName).map(_.sales).update(updateCoffeeSales)),Duration.Inf)
+    val beforecoffeSales = Await.result(db.run(coffees.filter(_.name === updateCoffeeName).map(_.sales).result),Duration.Inf)
+    val sumsales = updateCoffeeSales + beforecoffeSales.head
+     db.run(coffees.filter(_.name === updateCoffeeName).map(_.sales).update(sumsales))
+  }
+//} finally db.close
 }
 
 

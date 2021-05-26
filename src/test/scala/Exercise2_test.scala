@@ -48,9 +48,12 @@ class Exercise2_test extends funsuite.AnyFunSuite with BeforeAndAfter with Scala
     val coffeenameArray = Array("Colombian", "French_Roast", "Espresso", "Colombian_Decaf", "French_Roast_Decaf")
 
     for (value <- coffeenameArray) {
-    Excercise2.updateCoffeeTable(value,fix_sale_volme)
-    val update1 = db.run(coffees.filter(_.name === value).map(_.sales).result).futureValue
-    assert(update1.head == fix_sale_volme) 
+      val beforeupdate = db.run(coffees.filter(_.name === value).map(_.sales).result).futureValue
+
+      Excercise2.updateCoffeeTable(value,fix_sale_volme)
+      val updatesales = db.run(coffees.filter(_.name === value).map(_.sales).result).futureValue
+
+      assert(updatesales.head == (fix_sale_volme + beforeupdate.head))       
     }
   }
 }
