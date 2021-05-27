@@ -1,4 +1,4 @@
-import org.scalatest._
+/* import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import slick.jdbc.H2Profile.api._
@@ -47,3 +47,4 @@ class TablesSuite extends funsuite.AnyFunSuite with BeforeAndAfter with ScalaFut
   
   after { db.close }
 }
+ */
